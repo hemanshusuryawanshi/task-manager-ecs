@@ -4,11 +4,21 @@ A task management app deployed on AWS using a fully containerized, serverless-in
 
 **Live demo:** open `task-manager-frontend.html` in a browser — it's pre-configured to talk to the deployed API.
 
+## Screenshots
+
+**Dashboard — tasks loaded**
+
+
+**Empty state**
+
+
+**Mobile view**
+
+
 ## Architecture
 
-```
+![Architecture diagram](images/architecture-diagram.svg)
 Flask app  →  Docker image  →  Amazon ECR  →  ECS Fargate task  →  Application Load Balancer  →  DynamoDB
-```
 
 - **Flask** — REST API serving task CRUD operations
 - **Docker** — packages the Flask app into a container image
@@ -62,12 +72,11 @@ aws ecs update-service \
 ```
 
 ## Project structure
-
-```
 .
 ├── app.py                        # Flask API
 ├── Dockerfile                    # Container build
 ├── requirements.txt              # Python dependencies
 ├── task-manager-frontend.html    # Static dashboard frontend
+├── images/                       # Architecture diagram + screenshots
+│   └── architecture-diagram.svg
 └── .dockerignore
-```
