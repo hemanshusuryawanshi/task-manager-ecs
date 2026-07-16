@@ -71,8 +71,7 @@ aws ecs update-service \
   --force-new-deployment \
   --region ap-south-1
 ```
-
-## Project structure
+## Project Structure
 .
 ├── app.py                        # Flask API
 ├── Dockerfile                    # Container build
