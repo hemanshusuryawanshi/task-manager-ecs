@@ -74,15 +74,9 @@ aws ecs update-service \
 ## Project Structure
 .
 ├── app.py                        # Flask API
-
 ├── Dockerfile                    # Container build
-
 ├── requirements.txt              # Python dependencies
-
 ├── task-manager-frontend.html    # Static dashboard frontend
-
 ├── images/                       # Architecture diagram + screenshots
-
 │   └── architecture-diagram.svg
-
 └── .dockerignore
