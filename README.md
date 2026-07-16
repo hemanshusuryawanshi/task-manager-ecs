@@ -1,5 +1,5 @@
 # Task Manager — AWS ECS Fargate Demo
-
+🔗 **[Live demo](https://hemanshusuryawanshi.github.io/task-manager-ecs/)**
 A task management app deployed on AWS using a fully containerized, serverless-infrastructure pipeline. Built as a capstone project for the AWS with Python certification course at Symbiosis.
 
 **Live demo:** open `task-manager-frontend.html` in a browser — it's pre-configured to talk to the deployed API.
