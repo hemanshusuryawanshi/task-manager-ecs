@@ -17,7 +17,8 @@ A task management app deployed on AWS using a fully containerized, serverless-in
 
 ## Architecture
 
-![Architecture diagram](images/architecture-diagram.svg)
+<img width="893" height="444" alt="image" src="https://github.com/user-attachments/assets/f7fcde8b-8a09-43a8-a9f6-f5edd42152dc" />
+
 Flask app  →  Docker image  →  Amazon ECR  →  ECS Fargate task  →  Application Load Balancer  →  DynamoDB
 
 - **Flask** — REST API serving task CRUD operations
