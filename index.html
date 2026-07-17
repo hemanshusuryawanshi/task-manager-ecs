@@ -3,248 +3,363 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Task Manager — AWS ECS Fargate Demo</title>
+<title>Task Manager — AWS ECS Fargate</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0B1220;
-    --panel: #121B2E;
-    --panel-hover: #16213A;
-    --border: #232E47;
-    --text: #E8ECF3;
-    --text-muted: #8A93A6;
-    --accent: #22D3B8;
-    --accent-dim: #1A9E8C;
-    --danger: #E8615A;
-    --pending: #E8A23A;
-    --completed: #22D3B8;
+    --bg: #0B0E13;
+    --surface: #12161E;
+    --surface-2: #171C26;
+    --border: #232A38;
+    --border-bright: #323C50;
+    --text: #E7EBF1;
+    --text-dim: #7C8598;
+    --text-faint: #4B5468;
+    --amber: #FFB454;
+    --amber-dim: rgba(255,180,84,0.14);
+    --teal: #4ADE94;
+    --teal-dim: rgba(74,222,148,0.14);
+    --coral: #F2726B;
+    --coral-dim: rgba(242,114,107,0.12);
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-body: 'IBM Plex Sans', sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: radial-gradient(circle at top left, #0F1830 0%, #0B1220 55%);
+    background:
+      linear-gradient(180deg, rgba(255,180,84,0.03) 0%, transparent 220px),
+      var(--bg);
     color: var(--text);
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
     min-height: 100vh;
-    padding: 48px 24px;
+    padding: 40px 20px 80px;
   }
-  .wrap { max-width: 760px; margin: 0 auto; }
+  .wrap { max-width: 860px; margin: 0 auto; }
 
-  header { margin-bottom: 32px; }
-  .eyebrow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--accent);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 10px;
+  /* ---------- Topbar ---------- */
+  .topbar { margin-bottom: 28px; }
+  .topbar-row {
     display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--text-muted);
-    box-shadow: 0 0 0 0 rgba(34,211,184,0.6);
-  }
-  .dot.live { background: var(--accent); animation: pulse 2s infinite; }
-  .dot.down { background: var(--danger); }
-  @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(34,211,184,0.5); }
-    70% { box-shadow: 0 0 0 8px rgba(34,211,184,0); }
-    100% { box-shadow: 0 0 0 0 rgba(34,211,184,0); }
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 6px;
   }
   h1 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 32px;
+    font-family: var(--font-mono);
+    font-size: 22px;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
   }
-  .subtitle { color: var(--text-muted); font-size: 14px; margin-top: 6px; }
-
-  .config {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
-    margin-bottom: 24px;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-  .config label {
-    font-family: 'JetBrains Mono', monospace;
+  h1 span { color: var(--text-faint); font-weight: 500; }
+  .conn {
+    font-family: var(--font-mono);
     font-size: 11px;
-    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--text-dim);
+    letter-spacing: 0.02em;
+  }
+  .conn-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text-faint);
+    flex-shrink: 0;
+  }
+  .conn-dot.live { background: var(--teal); box-shadow: 0 0 0 3px var(--teal-dim); }
+  .conn-dot.down { background: var(--coral); box-shadow: 0 0 0 3px var(--coral-dim); }
+  .subtitle { color: var(--text-dim); font-size: 13px; font-family: var(--font-mono); }
+
+  /* ---------- Pipeline strip (signature element) ---------- */
+  .pipeline {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 24px 16px;
+    margin: 20px 0 24px;
+    overflow-x: auto;
+  }
+  .pipeline-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 16px;
+  }
+  .pipeline-track {
+    display: flex;
+    align-items: center;
+    min-width: 560px;
+  }
+  .node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    width: 84px;
+  }
+  .node-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: 1.5px solid var(--border-bright);
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+  }
+  .node-dot.on {
+    background: var(--amber);
+    border-color: var(--amber);
+    box-shadow: 0 0 10px rgba(255,180,84,0.55);
+  }
+  .node-label {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    color: var(--text-faint);
+    text-align: center;
+    letter-spacing: 0.03em;
+    transition: color 0.3s;
     white-space: nowrap;
   }
-  .config input {
+  .node-label.on { color: var(--text-dim); }
+  .connector {
+    flex: 1;
+    height: 1.5px;
+    background: var(--border-bright);
+    margin: 0 -2px 22px;
+    position: relative;
+    overflow: hidden;
+    min-width: 24px;
+  }
+  .connector::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: var(--amber);
+    transition: left 0.4s ease;
+  }
+  .connector.on::after { left: 0; }
+
+  /* ---------- Panels ---------- */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+  }
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .panel h2 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .panel-count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+
+  .config-row { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+  .config-row label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    white-space: nowrap;
+  }
+  .config-row input {
     flex: 1;
     background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    padding: 8px 10px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+    border-radius: 4px;
+    color: var(--text-dim);
+    padding: 7px 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
   }
-  .config input:focus { outline: none; border-color: var(--accent); }
-  .config button {
-    background: var(--accent);
-    color: #08201C;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 14px;
-    font-weight: 600;
-    font-size: 12px;
+  .config-row input:focus { outline: none; border-color: var(--amber); color: var(--text); }
+  .config-row button {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    padding: 7px 12px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 500;
     cursor: pointer;
     white-space: nowrap;
+    transition: border-color 0.15s, color 0.15s;
   }
-  .config button:hover { background: var(--accent-dim); }
-
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 24px;
-    margin-bottom: 20px;
-  }
-  .panel h2 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 16px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
+  .config-row button:hover { border-color: var(--amber); color: var(--amber); }
 
   form { display: flex; flex-direction: column; gap: 10px; }
-  .row { display: flex; gap: 10px; }
   input[type=text], textarea {
     width: 100%;
     background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 5px;
     color: var(--text);
     padding: 11px 12px;
     font-size: 14px;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
   }
-  input[type=text]:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  input[type=text]:focus, textarea:focus { outline: none; border-color: var(--amber); }
   textarea { resize: vertical; min-height: 44px; }
   .add-btn {
-    background: var(--accent);
-    color: #08201C;
+    background: var(--amber);
+    color: #1A1305;
     border: none;
-    border-radius: 8px;
+    border-radius: 5px;
     padding: 12px;
     font-weight: 600;
-    font-size: 14px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
     cursor: pointer;
     transition: background 0.15s;
   }
-  .add-btn:hover { background: var(--accent-dim); }
+  .add-btn:hover { background: #FFC575; }
   .add-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  .task-list { display: flex; flex-direction: column; gap: 10px; }
+  /* ---------- Task rows (log style) ---------- */
+  .task-list { display: flex; flex-direction: column; }
   .task {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    transition: border-color 0.15s;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--border);
   }
-  .task:hover { border-color: #2C3A5A; }
+  .task:last-child { border-bottom: none; }
   .task-check {
-    width: 20px; height: 20px;
-    border-radius: 6px;
-    border: 2px solid var(--border);
+    width: 16px; height: 16px;
+    border-radius: 4px;
+    border: 1.5px solid var(--border-bright);
     flex-shrink: 0;
-    margin-top: 2px;
+    margin-top: 3px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.15s;
   }
-  .task-check.done { background: var(--completed); border-color: var(--completed); }
-  .task-check.done::after { content: "✓"; color: #08201C; font-size: 13px; font-weight: 700; }
+  .task-check:hover { border-color: var(--teal); }
+  .task-check.done { background: var(--teal); border-color: var(--teal); }
+  .task-check.done::after { content: "✓"; color: #0B2016; font-size: 11px; font-weight: 700; }
   .task-body { flex: 1; min-width: 0; }
-  .task-title { font-size: 14.5px; font-weight: 500; word-break: break-word; }
-  .task-title.done { text-decoration: line-through; color: var(--text-muted); }
-  .task-desc { font-size: 13px; color: var(--text-muted); margin-top: 3px; word-break: break-word; }
+  .task-title { font-size: 14px; font-weight: 500; word-break: break-word; }
+  .task-title.done { text-decoration: line-through; color: var(--text-faint); }
+  .task-desc { font-size: 12.5px; color: var(--text-dim); margin-top: 3px; word-break: break-word; }
   .task-meta {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    color: var(--text-muted);
-    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-top: 7px;
     display: flex;
     gap: 10px;
     align-items: center;
   }
   .badge {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    padding: 2px 7px;
-    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    padding: 2px 6px;
+    border-radius: 3px;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
+    font-weight: 600;
   }
-  .badge.pending { background: rgba(232,162,58,0.15); color: var(--pending); }
-  .badge.completed { background: rgba(34,211,184,0.15); color: var(--completed); }
+  .badge.pending { background: var(--amber-dim); color: var(--amber); }
+  .badge.completed { background: var(--teal-dim); color: var(--teal); }
   .del-btn {
     background: none;
     border: none;
-    color: var(--text-muted);
+    color: var(--text-faint);
     cursor: pointer;
-    font-size: 16px;
-    padding: 4px 8px;
-    border-radius: 6px;
+    font-size: 15px;
+    padding: 2px 6px;
+    border-radius: 4px;
     flex-shrink: 0;
+    font-family: var(--font-mono);
   }
-  .del-btn:hover { color: var(--danger); background: rgba(232,97,90,0.1); }
+  .del-btn:hover { color: var(--coral); background: var(--coral-dim); }
 
   .empty {
     text-align: center;
-    padding: 32px 0;
-    color: var(--text-muted);
-    font-size: 13px;
+    padding: 28px 0;
+    color: var(--text-faint);
+    font-size: 12.5px;
+    font-family: var(--font-mono);
   }
   .error-banner {
-    background: rgba(232,97,90,0.1);
-    border: 1px solid rgba(232,97,90,0.3);
-    color: var(--danger);
-    border-radius: 8px;
-    padding: 12px 14px;
-    font-size: 13px;
+    background: var(--coral-dim);
+    border: 1px solid rgba(242,114,107,0.3);
+    color: var(--coral);
+    border-radius: 5px;
+    padding: 11px 14px;
+    font-size: 12.5px;
     margin-bottom: 16px;
     display: none;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .connector::after, .node-dot { transition: none; }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div class="eyebrow"><span class="dot" id="statusDot"></span><span id="statusText">checking connection…</span></div>
-    <h1>Task Manager</h1>
-    <div class="subtitle">Flask · Docker · ECR · ECS Fargate · ALB · DynamoDB</div>
-  </header>
 
-  <div class="config">
-    <label for="apiUrl">API_BASE_URL</label>
-    <input type="text" id="apiUrl" value="http://task-manager-alb-hemanshu2026-1237158019.ap-south-1.elb.amazonaws.com">
-    <button onclick="checkHealth()">Reconnect</button>
+  <div class="topbar">
+    <div class="topbar-row">
+      <h1>Task Manager <span>// aws ecs fargate demo</span></h1>
+      <div class="conn"><span class="conn-dot" id="connDot"></span><span id="connText">checking</span></div>
+    </div>
+    <div class="subtitle">flask · docker · ecr · ecs fargate · alb · dynamodb</div>
+  </div>
+
+  <div class="pipeline">
+    <div class="pipeline-label">request path</div>
+    <div class="pipeline-track" id="pipelineTrack">
+      <div class="node"><div class="node-dot" data-n="0"></div><div class="node-label" data-n="0">FLASK</div></div>
+      <div class="connector" data-c="0"></div>
+      <div class="node"><div class="node-dot" data-n="1"></div><div class="node-label" data-n="1">DOCKER</div></div>
+      <div class="connector" data-c="1"></div>
+      <div class="node"><div class="node-dot" data-n="2"></div><div class="node-label" data-n="2">ECR</div></div>
+      <div class="connector" data-c="2"></div>
+      <div class="node"><div class="node-dot" data-n="3"></div><div class="node-label" data-n="3">ECS FARGATE</div></div>
+      <div class="connector" data-c="3"></div>
+      <div class="node"><div class="node-dot" data-n="4"></div><div class="node-label" data-n="4">ALB</div></div>
+      <div class="connector" data-c="4"></div>
+      <div class="node"><div class="node-dot" data-n="5"></div><div class="node-label" data-n="5">DYNAMODB</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="config-row">
+      <label for="apiUrl">API_BASE_URL</label>
+      <input type="text" id="apiUrl" value="https://d288y7pcgydilu.cloudfront.net">
+      <button onclick="checkHealth()">Reconnect</button>
+    </div>
   </div>
 
   <div class="error-banner" id="errorBanner"></div>
 
   <div class="panel">
-    <h2>New task</h2>
+    <div class="panel-head"><h2>New task</h2></div>
     <form id="taskForm">
       <input type="text" id="titleInput" placeholder="Task title" required>
       <textarea id="descInput" placeholder="Description (optional)"></textarea>
@@ -253,11 +368,15 @@
   </div>
 
   <div class="panel">
-    <h2>Tasks</h2>
+    <div class="panel-head">
+      <h2>Tasks</h2>
+      <span class="panel-count" id="taskCount"></span>
+    </div>
     <div class="task-list" id="taskList">
-      <div class="empty">Loading tasks…</div>
+      <div class="empty">loading…</div>
     </div>
   </div>
+
 </div>
 
 <script>
@@ -278,35 +397,62 @@ function hideError() {
   document.getElementById('errorBanner').style.display = 'none';
 }
 
+/* ---------- Pipeline animation ---------- */
+function runPipeline(success) {
+  const nodes = document.querySelectorAll('.node-dot');
+  const labels = document.querySelectorAll('.node-label');
+  const connectors = document.querySelectorAll('.connector');
+  nodes.forEach(n => { n.classList.remove('on'); n.style.background = ''; n.style.borderColor = ''; });
+  labels.forEach(l => l.classList.remove('on'));
+  connectors.forEach(c => c.classList.remove('on'));
+
+  const activeCount = success ? 6 : 3; // partial light-up on failure (stalls at ECR)
+  for (let i = 0; i < activeCount; i++) {
+    setTimeout(() => {
+      nodes[i]?.classList.add('on');
+      labels[i]?.classList.add('on');
+      if (connectors[i]) connectors[i].classList.add('on');
+      if (!success && i === activeCount - 1) {
+        nodes[i]?.style.setProperty('background', 'var(--coral)');
+        nodes[i]?.style.setProperty('border-color', 'var(--coral)');
+      }
+    }, i * 110);
+  }
+}
+
 async function checkHealth() {
-  const dot = document.getElementById('statusDot');
-  const text = document.getElementById('statusText');
+  const dot = document.getElementById('connDot');
+  const text = document.getElementById('connText');
   try {
     const res = await fetch(`${API_BASE}/health`);
     if (!res.ok) throw new Error('bad status');
-    dot.className = 'dot live';
+    dot.className = 'conn-dot live';
     text.textContent = 'connected — ' + API_BASE.replace('http://', '');
     hideError();
+    runPipeline(true);
   } catch (err) {
-    dot.className = 'dot down';
+    dot.className = 'conn-dot down';
     text.textContent = 'not reachable';
-    showError('Could not reach the API. If this is your first time loading the page, your Flask app likely needs CORS enabled — see the note below the app, or check the API_BASE_URL above is correct.');
+    showError('Could not reach the API. If this is your first time loading the page, your Flask app likely needs CORS enabled, or check the API_BASE_URL above is correct.');
+    runPipeline(false);
   }
 }
 
 async function loadTasks() {
   const list = document.getElementById('taskList');
+  const count = document.getElementById('taskCount');
   try {
     const res = await fetch(`${API_BASE}/tasks`);
     const tasks = await res.json();
+    count.textContent = tasks.length ? `${tasks.length} total` : '';
     if (!tasks.length) {
-      list.innerHTML = '<div class="empty">No tasks yet — add one above.</div>';
+      list.innerHTML = '<div class="empty">no tasks yet — add one above</div>';
       return;
     }
     tasks.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     list.innerHTML = tasks.map(renderTask).join('');
   } catch (err) {
-    list.innerHTML = '<div class="empty">Couldn\'t load tasks. Check the connection above.</div>';
+    list.innerHTML = '<div class="empty">couldn\'t load tasks — check the connection above</div>';
   }
 }
 
@@ -342,18 +488,22 @@ async function toggleTask(id, newStatus) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus })
     });
+    runPipeline(true);
     loadTasks();
   } catch (err) {
     showError('Failed to update task.');
+    runPipeline(false);
   }
 }
 
 async function deleteTask(id) {
   try {
     await fetch(`${API_BASE}/tasks/${id}`, { method: 'DELETE' });
+    runPipeline(true);
     loadTasks();
   } catch (err) {
     showError('Failed to delete task.');
+    runPipeline(false);
   }
 }
 
@@ -372,9 +522,11 @@ document.getElementById('taskForm').addEventListener('submit', async (e) => {
     });
     document.getElementById('titleInput').value = '';
     document.getElementById('descInput').value = '';
+    runPipeline(true);
     loadTasks();
   } catch (err) {
     showError('Failed to add task.');
+    runPipeline(false);
   } finally {
     btn.disabled = false;
   }
